@@ -11,43 +11,38 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\ErrorsHandler\sendError;
 use App\Services\UserService;
+// use App\Services\LoginService;
 use Auth;
 
 class UserController extends Controller
 {
 
+    // Create a new user 
+    protected $userservice;
+    public function __construct(UserService $userservice){
+        $this->userservice = $userservice;
+    }
     
+    public function index(){
+        $user = $this->userservice->getAllUsers();
+        return response()->json($user);
+    }
+    
+    public function show($id){
+        $user = $this->userservice->getOneUser($id);
+        return response()->json($user);
+    }
+
     public function register(RegisterRequest $request){
-        $user = (new UserService())->register($request);
-        return response($user);
+        $user = $this->userservice->register($request);
+        return response()->json($user);
     }
-    
-    
-    //    protected $userservice;
-    //    public function __construct(UserService $userservice){
-    //     $this->userservice = $userservice;
-    //     return response($user);
 
-    
-    //    }
-  
-
-    // User Login
-public function login(LoginRequest $request)
-{
-    if (!Auth::attempt($request->only('email', 'password'))) {
-        return Helper::sendError('Email or Password are invalid');
+    public function login(LoginRequest $request)
+    {
+        $user = $this->userservice->login($request);
+      return Auth::attempt($user);
     }
-    $user = Auth::user();
-
-    if ($user->role == '1') {
-        return new SendResponse($user);    
-    } elseif ($user->role == '0') {
-        return new response($user);
-    }
-    return response()->json(['status' => 'Unknown role']);
-}
-
 
     // Logout
     public function logout(Request $request)
